@@ -24,11 +24,38 @@ def setEvent(service):
     print('End: %s' % e['end']['date'])
 
 
-def getEvents(service):
+def deleteEvent(service):
+    # print('Event name?')
+    # name = input()
 
-    print("How many events would you like to view?")
-    numEvents = input()
+    events = getEvents(service, 100)
 
+    for event in events:
+        if event['summary'] == 'teste':
+            id = event['id']
+            print(id)
+            e = service.events().delete(calendarId='primary', eventId=id).execute()
+
+    # print('****%r event deleted!****' % e['summary'].encode('utf-8'))
+
+
+
+def printEvents(events, numEvents):
+    eventCounter = 0
+
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        print(start, event['summary'])
+        eventCounter = eventCounter + 1
+        if event['summary'] == 'teste':
+            print('FOUND TESTE')
+
+    if eventCounter < numEvents:
+        print("It seems you only had %s events planned" % eventCounter)
+
+
+
+def getEvents(service, numEvents):
 
     # Call the Calendar API
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
@@ -44,15 +71,8 @@ def getEvents(service):
     if not events:
         print('No upcoming events found.')
 
-    eventCounter = 0
+    return events
 
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
-        eventCounter = eventCounter + 1
-
-    if eventCounter < numEvents:
-        print("It seems you only had %s events planned" % eventCounter)
 
 
 
@@ -89,17 +109,21 @@ def main():
         print("What would you like to do?")
         print("1 - Check next events")
         print("2 - Set event")
-        print('3 - Quit')
+        print('3 - Delete event')
+        print('4 - Quit')
         option = input()
         option = int(option)
 
         if option == 1:
-            getEvents(service)
+            print("How many events would you like to view?")
+            numEvents = input()
+            printEvents(getEvents(service, numEvents), numEvents)
         if option == 2:
             setEvent(service)
-        if option == 3:
+        if (option == 3):
+            deleteEvent(service)
+        if option == 4:
             run = False
-
 
 
 if __name__ == '__main__':
