@@ -7,10 +7,21 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'] #READONLY scope
+SCOPES = ['https://www.googleapis.com/auth/calendar'] #READONLY scope
 
 
-# def setEvent():
+def setEvent(service):
+    EVENT = {
+        'summary': 'teste',
+        'start': {'date' : '2019-06-21'},
+        'end' : {'date' : '2019-06-22'},
+    }
+
+    e = service.events().insert(calendarId = 'primary', sendNotifications = False, body = EVENT).execute()
+
+    print('****%r event added!****' % e['summary'].encode('utf-8'))
+    print('Start: %s' % e['start']['date'])
+    print('End: %s' % e['end']['date'])
 
 
 def getEvents(service):
