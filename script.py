@@ -9,19 +9,49 @@ from google.auth.transport.requests import Request
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar'] #READONLY scope
 
+#TODO: VERIFY SPECIFIC COLOR CODES FOR EACH EVENT
+EXAM_COLOR = "1"
+LEISURE_COLOR = "3"
+DELIVERY_COLOR = "6"
+YELLOW = "5"
+BLUEBERRY = "9"
+
+
+def selectEventType():
+        print("What type of event would you like to choose?")
+        print("1 - Exam/Test")
+        print('2 - Project delivery')
+        print('3 - Leisure event')
+
+        type = str(input())
+
+        return type 
+
+
 
 def setEvent(service):
+    type = selectEventType();
+
+    if type == 1:
+        color = EXAM_COLOR
+    elif type == 2:
+        color = DELIVERY_COLOR
+    elif type == 3:
+        color = LEISURE_COLOR
+    else:
+        color = BLUEBERRY
 
     GMT_0FF = '+00:00'
     name = raw_input("What name do you wish your event to have?")
-    dayTime = raw_input("What day/time is your event? Please enter (YYYY)-(MM)-(DD)T(HH):(MM):(SS)")
+    startTime = raw_input("What day/time does your event start? Please enter (YYYY)-(MM)-(DD)T(HH):(MM):(SS)")
+    endTime = raw_input("What day/time does your event end? Please enter (YYYY)-(MM)-(DD)T(HH):(MM):(SS)")
+
 
     EVENT = {
         'summary': '%s' % name,
-        # 'start.timeZone' : 'Europe/Lisbon',
         'start': {'dateTime' : '%s%s' % (dayTime, GMT_0FF)},
-        # 'end.timeZone' : 'Europe/Lisbon',
         'end' : {'dateTime' : '%s%s' % (dayTime, GMT_0FF)},
+        "colorId": "%s" % color
     }
 
     e = service.events().insert(calendarId = 'primary', sendNotifications = False, body = EVENT).execute()
@@ -42,20 +72,17 @@ def deleteEvent(service):
             id = event['id']
             print(id)
             e = service.events().delete(calendarId='primary', eventId=id).execute()
-            # print('****%r event deleted!****' % e['summary'].encode('utf-8'))
+            print('****%r event deleted!****' % e['summary'].encode('utf-8'))
 
 
 
-def printEvents(events, numEvents):
+def printEvents(events):
     eventCounter = 0
 
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
         eventCounter = eventCounter + 1
-
-    if eventCounter < numEvents:
-        print("It seems you only had %s events planned" % eventCounter)
 
 
 
@@ -73,12 +100,14 @@ def getEvents(service, numEvents):
 
     if not events:
         print('No upcoming events found.')
+        return
 
     return events
 
 
 
 def main():
+    
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -96,13 +125,14 @@ def main():
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
-            creds = flow.run_local_server()
+            creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
-
     service = build('calendar', 'v3', credentials=creds)
+
+
 
     run = True
 
@@ -112,13 +142,16 @@ def main():
         print("2 - Set event")
         print('3 - Delete event')
         print('4 - Quit')
+
+        # colors = service.colors().get().execute()
+        # print(colors)
         option = input()
         option = int(option)
 
         if option == 1:
             print("How many events would you like to view?")
             numEvents = input()
-            printEvents(getEvents(service, numEvents), numEvents)
+            printEvents(getEvents(service, numEvents))
         if option == 2:
             setEvent(service)
         if (option == 3):
